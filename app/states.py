@@ -8,3 +8,4 @@ class Reg(StatesGroup):
     wait_for_payment_type = State()
     wait_for_discount = State()
     wait_for_price = State()
+    wait_for_send = State()

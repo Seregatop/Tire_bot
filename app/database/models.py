@@ -51,6 +51,27 @@ class DiscountDB(Base):
     name: Mapped[str] = mapped_column(String(15))
 
 
+class PriceDB(Base):
+    __tablename__ = 'prices'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(15))
+
+
+class MainDB(Base):
+    __tablename__ = 'main'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id = mapped_column(BigInteger)
+    user_name: Mapped[str] = mapped_column(String(15))
+    diameter: Mapped[str] = mapped_column(ForeignKey('diameters.name'))
+    service: Mapped[str] = mapped_column(ForeignKey('services.name'))
+    additional_service: Mapped[str] = mapped_column(ForeignKey('additional_services.name'))
+    payment_type: Mapped[str] = mapped_column(ForeignKey('payment_types.name'))
+    discount: Mapped[str] = mapped_column(ForeignKey('discounts.name'))
+    price: Mapped[str] = mapped_column(ForeignKey('prices.name'))
+
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

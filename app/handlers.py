@@ -3,11 +3,13 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command
 
 from app.builder import available_kb
-from app.database.requests import check_available
+from app.database.requests import check_available, approximate_price
 from app.database.models import PaymentDB, DiameterDB, DiscountDB, AddServiceDB, ServiceDB
 
 from app.states import Reg
 from aiogram.fsm.context import FSMContext
+
+from datetime import datetime
 
 user = Router()
 
@@ -27,7 +29,7 @@ async def sell_start(message: Message, state: FSMContext):
 
 @user.callback_query(Reg.wait_for_diameter)
 async def diameter_chosen(call: CallbackQuery, state: FSMContext):
-    if await check_available(DiameterDB, call.data):
+    if not await check_available(DiameterDB, call.data):
         await call.answer(text='Выберите диаметр из списка')
         return
     await state.update_data(chosen_diameter=call.data)
@@ -35,61 +37,57 @@ async def diameter_chosen(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(text='2. Выберите услугу', reply_markup=await available_kb(ServiceDB))
 
 
-"""
-@user.callback_query(Reg.wait_for_diameter)
-async def usluga_chosen(call: CallbackQuery, state: FSMContext):
-    if call.data not in requests(''):
+@user.callback_query(Reg.wait_for_service)
+async def service_chosen(call: CallbackQuery, state: FSMContext):
+    if not await check_available(ServiceDB, call.data):
         await call.answer(text='Выберите услугу из списка')
         return
     await state.update_data(chosen_usluga=call.data)
-    await OrderFood.next()
-    await call.message.edit_text(text='3\\. Выберите допуслугу', reply_markup=keybord_inline_dopuslugi)
+    await state.set_state(Reg.wait_for_additional_service)
+    await call.message.edit_text(text='3. Выберите допуслугу', reply_markup=await available_kb(AddServiceDB))
 
 
-@user.callback_query(Reg.wait_for_diameter)
-async def dopusluga_chosen(call: CallbackQuery, state: FSMContext):
-    if call.data not in available_dopuslugi:
+@user.callback_query(Reg.wait_for_additional_service)
+async def additional_service_chosen(call: CallbackQuery, state: FSMContext):
+    if not await check_available(AddServiceDB, call.data):
         await call.answer(text='Выберите допуслугу из списка')
         return
     await state.update_data(chosen_dopusluga=call.data)
-    await OrderFood.next()
-    await call.message.edit_text(text='4\\. Выберите оплату', reply_markup=keybord_inline_oplata)
+    await state.set_state(Reg.wait_for_payment_type)
+    await call.message.edit_text(text='4. Выберите оплату', reply_markup=await available_kb(PaymentDB))
 
 
-@user.callback_query(Reg.)
-async def oplata_chosen(call: CallbackQuery, state: FSMContext):
-    if call.data not in available_oplata:
+@user.callback_query(Reg.wait_for_payment_type)
+async def payment_type_chosen(call: CallbackQuery, state: FSMContext):
+    if not await check_available(PaymentDB, call.data):
         await call.answer(text='Выберите тип оплаты из списка')
         return
     await state.update_data(chosen_oplata=call.data)
-    await OrderFood.next()
-    await call.message.edit_text(text='5\\. Выберите скидку', reply_markup=keybord_inline_skidka)
+    await state.set_state(Reg.wait_for_discount)
+    await call.message.edit_text(text='5. Выберите скидку', reply_markup=await available_kb(DiscountDB))
 
 
-@user.callback_query(Reg.)
-async def skidka_chosen(call: CallbackQuery, state: FSMContext):
-    if call.data not in available_skidka:
+@user.callback_query(Reg.wait_for_discount)
+async def discount_chosen(call: CallbackQuery, state: FSMContext):
+    if check_available(DiscountDB, call.data):
         await call.answer(text='Выберите скидку из списка')
         return
     await state.update_data(chosen_skidka=call.data)
-    await OrderFood.next()
+    await state.set_state(Reg.wait_for_price)
     user_data = await state.get_data()
-    primernay_czena4 = float(prices[user_data["chosen_usluga"]][user_data["chosen_diameter"]]) * (-float(user_data["chosen_skidka"]) / 100.0 + 1)
-    if user_data["chosen_dopusluga"] != "Нет":
-        primernay_czena4 += 200.0
-    primernay_czena = int(primernay_czena4)
-    await call.message.edit_text(text=f'6\\. Оренировочая цена: __{primernay_czena}руб\\.__\nНапишите конечную цену:')
+    price = await approximate_price(user_data)
+    await call.message.edit_text(text=f'6. Ориентировочная цена: __{price}руб.__\nНапишите конечную цену:')
 
 
-@user.callback_query(Reg.)
-async def czena_chosen(msg: Message, state: FSMContext):
+@user.callback_query(Reg.wait_for_price)
+async def price_chosen(msg: Message, state: FSMContext):
     try:
         int(msg.text.lower())
     except ValueError:
         await msg.answer(text='Цифру без всего')
         return
     await state.update_data(chosen_czena=msg.text)
-    await OrderFood.next()
+    await state.set_state(Reg.wait_for_send)
     user_data = await state.get_data()
     await msg.answer(text=
                      f'Диаметр: {user_data["chosen_diameter"]}\n'
@@ -100,8 +98,8 @@ async def czena_chosen(msg: Message, state: FSMContext):
                      f'Сумма: {user_data["chosen_czena"]} руб\\.\n', reply_markup=keybord_inline_otpravit)
 
 
-@user.callback_query(Reg.)
-async def otpravka_chosen(call: CallbackQuery, state: FSMContext):
+@user.callback_query(Reg.wait_for_send)
+async def send_chosen(call: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     # дата
     #bot.answer_callback_query()
@@ -127,4 +125,3 @@ async def otpravka_chosen(call: CallbackQuery, state: FSMContext):
     pprint(response)
     print(call.message.chat.username, user_data["chosen_czena"])
     await state.clear()
-"""

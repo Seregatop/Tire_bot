@@ -1,4 +1,5 @@
 from sqlalchemy import BigInteger
+from aiogram.fsm.state import State
 
 from app.database.models import async_session
 from sqlalchemy import select, update, delete, desc
@@ -23,3 +24,8 @@ async def check_available(session, dbname, req):
     print('----------------------------------------------------------')
     print(*available)
     return req in available
+
+
+@connection
+async def approximate_price(session, user_data):
+    user = await session.scalar(select(User).where(User.tg_id == tg_id))
