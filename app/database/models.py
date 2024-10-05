@@ -1,8 +1,9 @@
-from sqlalchemy import ForeignKey, String, BigInteger
+from sqlalchemy import ForeignKey, String, BigInteger, select
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from datetime import datetime
 
+import asyncio
 
 from config import DB_URL
 
@@ -75,3 +76,9 @@ class MainDB(Base):
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+# async def test():
+#     async with async_session() as session:
+#         model = await session.scalars(select(DiameterDB).where(DiameterDB.name == 'R13'))
+#         print(model.all())

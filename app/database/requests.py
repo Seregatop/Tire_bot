@@ -20,12 +20,17 @@ async def get_available(session, dbname):
 
 @connection
 async def check_available(session, dbname, req):
-    available = await session.scalars(select(dbname))
-    print('----------------------------------------------------------')
-    print(*available)
-    return req in available
+    model = await session.scalar(select(dbname).where(dbname.name == req))
+    try:
+        result = model.name
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    # result = await session.execute()
+    # result = await session.scalars(dbname).filter(dbname.name == req).first()
 
 
 @connection
 async def approximate_price(session, user_data):
-    user = await session.scalar(select(User).where(User.tg_id == tg_id))
+    return '404'

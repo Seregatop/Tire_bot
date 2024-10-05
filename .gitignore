@@ -172,3 +172,4 @@ cython_debug/
 /example/
 /misc.xml
 /config.py
+client_secret.json
