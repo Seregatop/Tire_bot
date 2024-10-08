@@ -56,7 +56,17 @@ class PriceDB(Base):
     __tablename__ = 'prices'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(15))
+    service: Mapped[str] = mapped_column(String(15)) # 1пропуск и как-то сделать список всех услуг автоматом
+    R13: Mapped[str] = mapped_column(String(15))
+    R14: Mapped[str] = mapped_column(String(15))
+    R15: Mapped[str] = mapped_column(String(15))
+    R16: Mapped[str] = mapped_column(String(15))
+    R17: Mapped[str] = mapped_column(String(15))
+    R18: Mapped[str] = mapped_column(String(15))
+    R19: Mapped[str] = mapped_column(String(15))
+    R20: Mapped[str] = mapped_column(String(15))
+    R21: Mapped[str] = mapped_column(String(15))
+    R22: Mapped[str] = mapped_column(String(15))
 
 
 class MainDB(Base):
@@ -65,12 +75,12 @@ class MainDB(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger)
     user_name: Mapped[str] = mapped_column(String(15))
-    diameter: Mapped[str] = mapped_column(ForeignKey('diameters.name'))
-    service: Mapped[str] = mapped_column(ForeignKey('services.name'))
-    additional_service: Mapped[str] = mapped_column(ForeignKey('additional_services.name'))
-    payment_type: Mapped[str] = mapped_column(ForeignKey('payment_types.name'))
-    discount: Mapped[str] = mapped_column(ForeignKey('discounts.name'))
-    price: Mapped[str] = mapped_column(ForeignKey('prices.name'))
+    diameter: Mapped[str] = mapped_column(String(15))
+    service: Mapped[str] = mapped_column(String(15))
+    additional_service: Mapped[str] = mapped_column(String(15))
+    payment_type: Mapped[str] = mapped_column(String(15))
+    discount: Mapped[str] = mapped_column(String(15))
+    price: Mapped[str] = mapped_column(String(15))
 
 
 async def async_main():

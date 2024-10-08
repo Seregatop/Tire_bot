@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command
 
 from app.builder import available_kb
-from app.database.requests import check_available, approximate_price
+from app.database.requests import check_available, approximate_price, to_bd
 from app.database.models import PaymentDB, DiameterDB, DiscountDB, AddServiceDB, ServiceDB
 from app.keyboards import keyboard_inline_new, keyboard_inline_post
 
@@ -109,7 +109,7 @@ async def discount_chosen(call: CallbackQuery, state: FSMContext):
     await state.update_data(chosen_discount=call.data)
     await state.set_state(Reg.wait_for_price)
     user_data = await state.get_data()
-    price = await approximate_price(user_data)
+    price = await approximate_price(user_data['chosen_service'])
     await call.message.edit_text(text=f'6. Ориентировочная цена: {price}руб.\nНапишите конечную цену:')
 
 
@@ -149,4 +149,7 @@ async def send_chosen(call: CallbackQuery, state: FSMContext):
     await call.answer(text="Отправлено")
     await call.message.edit_reply_markup(reply_markup=keyboard_inline_new)
     print(call.message.chat.username, user_data["chosen_price"])
+    await to_bd(call.message.from_user.username, user_data["chosen_diameter"], user_data["chosen_service"],
+                user_data["chosen_additional_service"], user_data["chosen_payment_type"], user_data["chosen_discount"],
+                user_data["chosen_price"])
     await state.clear()
