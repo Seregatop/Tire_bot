@@ -1,8 +1,10 @@
-from sqlalchemy import BigInteger
+from datetime import datetime, date
+
+from sqlalchemy import BigInteger, func
 from sqlalchemy import select, update, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Base, MainDB
+from app.database.models import Base, MainDB, AdminDB
 
 from aiogram.fsm.state import State
 from app.database.models import async_session, DiameterDB, ServiceDB, PriceDB
@@ -14,16 +16,17 @@ def connection(func):
     async def inner(*args, **kwargs):
         async with async_session() as session:
             return await func(session, *args, **kwargs)
+
     return inner
 
 
 @connection
-async def get_available(session, dbname):
+async def get_available(session: AsyncSession, dbname):
     return await session.scalars(select(dbname))
 
 
 @connection
-async def check_available(session, dbname: Base, req: str):
+async def check_available(session: AsyncSession, dbname: Base, req: str):
     model = await session.scalar(select(dbname).where(dbname.name == req))
     try:
         result = model.name
@@ -31,26 +34,37 @@ async def check_available(session, dbname: Base, req: str):
     except Exception as e:
         print(e)
         return False
-    # result = await session.execute()
-    # result = await session.scalars(dbname).filter(dbname.name == req).first()
 
 
 @connection
-async def approximate_price(session, service_name: str) -> int: # из user_data берем услугу(user_data['chosen_diameter']) и диаметр(user_data['chosen_service'])
-    pass
-    # x = await session.scalar(select(DiameterDB).where(DiameterDB.name == user_data['chosen_diameter']))
-    y = await session.scalar(select(PriceDB).where(PriceDB.service == service_name))
-    return y.R17
-    # return await session.scalar(select(PriceDB).where(PriceDB.))
+async def approximate_price(session: AsyncSession,
+                            service_name: str) -> int:
+    result = await session.scalar(select(PriceDB).where(PriceDB.service == service_name))
+    return result.R17
 
 
 @connection
-async def to_bd(session: AsyncSession, user_name, diameter, service, additional_service, payment_type, discount, price): # должна записывать много всего в БД
-    sale = MainDB(user_name=user_name, diameter=diameter, service=service, additional_service=additional_service,
-                  payment_type=payment_type, discount=discount, price=price)
+async def to_bd(session: AsyncSession, tg_id, user_name, diameter, service, additional_service, payment_type, discount,
+                price):
+    sale = MainDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), diameter=diameter, service=service,
+                  additional_service=additional_service, payment_type=payment_type, discount=discount, price=price)
     session.add(sale)
     await session.commit()
 
-    # x = await session.scalar(select(DiameterDB).where(DiameterDB.name == user_data['chosen_diameter']))
-    # y = await session.scalar(select(ServiceDB).where(ServiceDB.name == user_data['chosen_service']))
-    # return await session.scalar(select(PriceDB).where(PriceDB.))
+
+@connection
+async def season_total(session: AsyncSession):
+    result = await session.scalar(select(func.sum(MainDB.price)))
+    return result
+
+
+@connection
+async def day_total(session: AsyncSession):
+    result = await session.scalar(select(func.sum(MainDB.price)).where(MainDB.created_at == func.current_date()))
+    return result
+
+
+@connection
+async def admin_list(session: AsyncSession):
+    result = await session.scalars(select(AdminDB.tg_id))
+    return result.all()

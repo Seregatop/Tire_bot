@@ -46,18 +46,17 @@ async def call_back(call: CallbackQuery, state: FSMContext):
 
 
 @user.message(Command('car'))
-async def sell_start(message: Message, state: FSMContext):
-    await message.delete()
-    await message.answer('1. Выберите диаметр колеса', reply_markup=await available_kb(DiameterDB))
-    await state.set_state(Reg.wait_for_diameter)
-
-
 @user.callback_query(F.data == 'car')
-async def sell_call_start(call: CallbackQuery, state: FSMContext):
-    await call.message.delete_reply_markup()
-    await call.message.answer('1. Выберите диаметр колеса', reply_markup=await available_kb(DiameterDB))
-    await state.set_state(Reg.wait_for_diameter)
-    await state.update_data(DB=DiameterDB)
+async def sell_start(message: Message | CallbackQuery, state: FSMContext):
+    if isinstance(message, Message):
+        await message.delete()
+        await message.answer('1. Выберите диаметр колеса', reply_markup=await available_kb(DiameterDB))
+        await state.set_state(Reg.wait_for_diameter)
+    else:
+        await message.message.delete_reply_markup()
+        await message.message.answer('1. Выберите диаметр колеса', reply_markup=await available_kb(DiameterDB))
+        await state.set_state(Reg.wait_for_diameter)
+        await state.update_data(DB=DiameterDB)
 
 
 @user.callback_query(Reg.wait_for_diameter)
@@ -123,15 +122,18 @@ async def price_chosen(message: Message, state: FSMContext):
     await state.update_data(chosen_price=message.text)
     await state.set_state(Reg.wait_for_send)
     user_data = await state.get_data()
-    await message.bot.delete_message(chat_id=message.chat.id, message_id=int(user_data['message_id']))
+    # await message.bot.delete_message(chat_id=message.chat.id, message_id=int(user_data['message_id']))
     await message.delete()
-    await message.answer(text=
-                         f'Диаметр: {user_data["chosen_diameter"]}\n'
-                         f'Услуга: {user_data["chosen_service"]}\n'
-                         f'Допулсуга: {user_data["chosen_additional_service"]}\n'
-                         f'Вид оплаты: {user_data["chosen_payment_type"]}\n'
-                         f'{user_data["chosen_discount"]}% скидка\n'
-                         f'Сумма: {user_data["chosen_price"]} руб.\n', reply_markup=keyboard_inline_post)
+    await message.bot.edit_message_text(text=
+                                        f'Диаметр: {user_data["chosen_diameter"]}\n'
+                                        f'Услуга: {user_data["chosen_service"]}\n'
+                                        f'Допулсуга: {user_data["chosen_additional_service"]}\n'
+                                        f'Вид оплаты: {user_data["chosen_payment_type"]}\n'
+                                        f'{user_data["chosen_discount"]}% скидка\n'
+                                        f'Сумма: {user_data["chosen_price"]} руб.\n',
+                                        reply_markup=keyboard_inline_post,
+                                        chat_id=message.chat.id,
+                                        message_id=user_data['message_id'])
 
 
 @user.callback_query(Reg.wait_for_send)
@@ -145,11 +147,11 @@ async def send_chosen(call: CallbackQuery, state: FSMContext):
          str(call.message.chat.full_name), call.from_user.id, call.from_user.username,
          user_data["chosen_diameter"], str(user_data["chosen_service"]), user_data["chosen_additional_service"],
          "", user_data["chosen_payment_type"], round(float(user_data["chosen_discount"]) / 100, 2),
-         int(user_data["chosen_price"])])
+         int(user_data["chosen_price"]), int(countdown.days)])
     await call.answer(text="Отправлено")
     await call.message.edit_reply_markup(reply_markup=keyboard_inline_new)
     print(call.message.chat.username, user_data["chosen_price"])
-    await to_bd(call.message.from_user.username, user_data["chosen_diameter"], user_data["chosen_service"],
-                user_data["chosen_additional_service"], user_data["chosen_payment_type"], user_data["chosen_discount"],
-                user_data["chosen_price"])
+    await to_bd(call.message.from_user.username, call.message.from_user.id, user_data["chosen_diameter"],
+                user_data["chosen_service"], user_data["chosen_additional_service"], user_data["chosen_payment_type"],
+                user_data["chosen_discount"], user_data["chosen_price"])
     await state.clear()

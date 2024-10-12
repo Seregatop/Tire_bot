@@ -1,7 +1,7 @@
-from sqlalchemy import ForeignKey, String, BigInteger, select
+from sqlalchemy import ForeignKey, String, BigInteger, select, text, func
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
-from datetime import datetime
+from datetime import datetime, date
 
 import asyncio
 
@@ -52,6 +52,13 @@ class DiscountDB(Base):
     name: Mapped[str] = mapped_column(String(15))
 
 
+class AdminDB(Base):
+    __tablename__ = 'administrators'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id = mapped_column(BigInteger)
+
+
 class PriceDB(Base):
     __tablename__ = 'prices'
 
@@ -74,6 +81,7 @@ class MainDB(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger)
+    created_at: Mapped[date] = mapped_column(server_default=func.current_date())
     user_name: Mapped[str] = mapped_column(String(15))
     diameter: Mapped[str] = mapped_column(String(15))
     service: Mapped[str] = mapped_column(String(15))
@@ -86,9 +94,3 @@ class MainDB(Base):
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-
-# async def test():
-#     async with async_session() as session:
-#         model = await session.scalars(select(DiameterDB).where(DiameterDB.name == 'R13'))
-#         print(model.all())

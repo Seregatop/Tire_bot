@@ -5,13 +5,14 @@ from aiogram import Bot, Dispatcher
 
 from config import TOKEN  # load dot_env
 from app.handlers import user
+from app.admin import admin
 from app.database.models import async_main
 
 
 async def main():
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
-    dp.include_router(user)
+    dp.include_routers(user, admin)
     dp.startup.register(on_startup)
     await dp.start_polling(bot)
 
