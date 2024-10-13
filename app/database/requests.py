@@ -4,7 +4,7 @@ from sqlalchemy import BigInteger, func
 from sqlalchemy import select, update, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Base, MainDB, AdminDB
+from app.database.models import Base, MainDB, AdminDB, PayDB
 
 from aiogram.fsm.state import State
 from app.database.models import async_session, DiameterDB, ServiceDB, PriceDB
@@ -12,10 +12,10 @@ from app.database.models import async_session, DiameterDB, ServiceDB, PriceDB
 from decimal import Decimal
 
 
-def connection(func):
+def connection(function):
     async def inner(*args, **kwargs):
         async with async_session() as session:
-            return await func(session, *args, **kwargs)
+            return await function(session, *args, **kwargs)
 
     return inner
 
@@ -44,11 +44,19 @@ async def approximate_price(session: AsyncSession,
 
 
 @connection
-async def to_bd(session: AsyncSession, tg_id, user_name, diameter, service, additional_service, payment_type, discount,
-                price):
+async def to_main_bd(session: AsyncSession, tg_id, user_name, diameter, service, additional_service, payment_type,
+                     discount, price):
     sale = MainDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), diameter=diameter, service=service,
                   additional_service=additional_service, payment_type=payment_type, discount=discount, price=price)
     session.add(sale)
+    await session.commit()
+
+
+@connection
+async def to_pay_bd(session: AsyncSession, tg_id, user_name, category, payer, object_, price):
+    pay = PayDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), category=category, object=object_,
+                payer=payer, price=price)
+    session.add(pay)
     await session.commit()
 
 

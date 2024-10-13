@@ -9,6 +9,9 @@ test_board = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='One'), Keyboard
 keyboard_inline_new = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(text='Новая продажа', callback_data='car')]])
 
+keyboard_inline_new_pay = InlineKeyboardMarkup(inline_keyboard=[[
+    InlineKeyboardButton(text='Новый расход', callback_data='pay')]])
+
 keyboard_inline_post = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(text='Отмена', callback_data='cancel'),
     InlineKeyboardButton(text='Отправить', callback_data='send1')]])

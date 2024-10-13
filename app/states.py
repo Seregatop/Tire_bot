@@ -16,3 +16,4 @@ class Pay(StatesGroup):
     wait_for_payer = State()
     wait_for_object = State()
     wait_for_price = State()
+    wait_for_send = State()

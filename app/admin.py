@@ -7,7 +7,7 @@ from app.database.requests import season_total, day_total, admin_list
 
 from app.sending_to_sheets import get_season, get_day
 
-from app.states import Reg
+from app.states import Sale
 # from app.database.requests import
 
 admin = Router()

@@ -91,6 +91,33 @@ class MainDB(Base):
     price: Mapped[str] = mapped_column(String(15))
 
 
+class CategoryDB(Base):
+    __tablename__ = 'categories'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(15))
+
+
+class PayerDB(Base):
+    __tablename__ = 'payers'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(15))
+
+
+class PayDB(Base):
+    __tablename__ = 'pay'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tg_id = mapped_column(BigInteger)
+    created_at: Mapped[date] = mapped_column(server_default=func.current_date())
+    user_name: Mapped[str] = mapped_column(String(15))
+    category: Mapped[str] = mapped_column(String(15))
+    object: Mapped[str] = mapped_column(String(15))
+    payer: Mapped[str] = mapped_column(String(15))
+    price: Mapped[str] = mapped_column(String(15))
+
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
