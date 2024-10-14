@@ -44,7 +44,7 @@ async def approximate_price(session: AsyncSession,
 
 
 @connection
-async def to_main_bd(session: AsyncSession, tg_id, user_name, diameter, service, additional_service, payment_type,
+async def to_main_bd(session: AsyncSession, user_name, tg_id, diameter, service, additional_service, payment_type,
                      discount, price):
     sale = MainDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), diameter=diameter, service=service,
                   additional_service=additional_service, payment_type=payment_type, discount=discount, price=price)
