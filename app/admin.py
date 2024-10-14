@@ -8,6 +8,7 @@ from app.database.requests import season_total, day_total, admin_list
 from app.sending_to_sheets import get_season, get_day
 
 from app.states import Sale
+
 # from app.database.requests import
 
 admin = Router()
@@ -20,6 +21,13 @@ class Admin(Filter):
 
 @admin.message(Admin(), Command('info'))
 async def cmd_info(message: Message, state: FSMContext):
+    if await state.get_state():
+        user_data = await state.get_data()
+        await message.bot.edit_message_reply_markup(chat_id=message.chat.id,
+                                                    message_id=user_data["message_id"],
+                                                    reply_markup=None
+                                                    )
+    await state.clear()
     db_result = await season_total()
     google_result = await get_season()
     await message.answer(f'Локальные данные\nОборот за сезон: р.{db_result}\n\n'
@@ -28,6 +36,12 @@ async def cmd_info(message: Message, state: FSMContext):
 
 @admin.message(Admin(), Command('day'))
 async def cmd_day(message: Message, state: FSMContext):
+    if await state.get_state():
+        user_data = await state.get_data()
+        await message.bot.edit_message_reply_markup(chat_id=message.chat.id,
+                                                    message_id=user_data["message_id"],
+                                                    reply_markup=None
+                                                    )
     await state.clear()
     db_result = await day_total()
     google_result = await get_day()

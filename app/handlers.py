@@ -135,18 +135,27 @@ async def price_chosen(message: Message, state: FSMContext):
                                         message_id=user_data['message_id'])
 
 
-@user.callback_query(Sale.wait_for_send, F.data == 'send1')
+@user.callback_query(Sale.wait_for_send, lambda c: c.data.startswith('send_'))
 async def send_chosen(call: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     await state.clear()
     now = datetime.now()
     new_years = datetime(day=30, month=12, year=1899)
     countdown = now - new_years
+    offset = int(call.data.split('_')[1])
     await send_gs_car(
-        [int(countdown.days), int(countdown.days), int(call.message.date.month), str(call.message.date.time()),
-         str(call.message.chat.full_name), call.from_user.id, call.from_user.username,
-         user_data["chosen_diameter"], str(user_data["chosen_service"]), user_data["chosen_additional_service"],
-         "", user_data["chosen_payment_type"], round(float(user_data["chosen_discount"]) / 100, 2),
+        [int(countdown.days) - offset,
+         int(countdown.days) - offset,
+         int(call.message.date.month),
+         str(call.message.date.time()),
+         str(call.message.chat.full_name),
+         call.from_user.id, call.from_user.username,
+         user_data["chosen_diameter"],
+         str(user_data["chosen_service"]),
+         user_data["chosen_additional_service"],
+         "",
+         user_data["chosen_payment_type"],
+         round(float(user_data["chosen_discount"]) / 100, 2),
          int(user_data["chosen_price"])])
     await call.answer(text="Отправлено")
     await call.message.edit_reply_markup(reply_markup=keyboard_inline_new)
@@ -223,15 +232,20 @@ async def price_chosen(message: Message, state: FSMContext):
                                         message_id=user_data['message_id'])
 
 
-@user.callback_query(Pay.wait_for_send, F.data == 'send1')
+@user.callback_query(Pay.wait_for_send, lambda c: c.data.startswith('send_'))
 async def send_chosen(call: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     now = datetime.now()
     new_years = datetime(day=30, month=12, year=1899)
     countdown = now - new_years
+    offset = int(call.data.split('_')[1])
     await send_gs_pay(
-        [int(countdown.days), user_data["chosen_category"], str(user_data["chosen_object"]),
-         user_data["chosen_payer"], user_data["chosen_price"], now.month]
+        [int(countdown.days) - offset,
+         user_data["chosen_category"],
+         str(user_data["chosen_object"]),
+         user_data["chosen_payer"],
+         user_data["chosen_price"],
+         now.month]
     )
     await call.answer(text="Отправлено")
     await call.message.edit_reply_markup(reply_markup=keyboard_inline_new_pay)

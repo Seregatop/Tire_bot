@@ -1,8 +1,9 @@
 import pygsheets
+from config import SPREADSHEET_ID
 
 gs = pygsheets.authorize(service_file=r"client_secret.json")
 
-sh = gs.open_by_key('1cElu0aCG2bi6ocoK3GCKVwRY_ze8S7d3M8XfJQPfF24')
+sh = gs.open_by_key(SPREADSHEET_ID)
 
 
 async def send_gs_car(*args):
