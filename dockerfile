@@ -4,13 +4,12 @@ WORKDIR /app
 
 COPY poetry.lock pyproject.toml ./
 
-RUN pip install --upgrade pip \
-    && python -m pip install poetry==1.8.3
+RUN apk add --no-cache gcc musl-dev libffi-dev
+RUN pip install --no-cache-dir poetry==1.8.3
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-interaction --no-ansi \
-    && rm -rf $(poetry config cache-dir)/{cache,artifacts}
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev --no-interaction --no-ansi
 
 COPY . .
 
-CMD ["sh", "tire_bot"]
+CMD ["tire_bot"]

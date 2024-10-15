@@ -4,26 +4,26 @@ import logging  # loguru почитать
 from aiogram import Bot, Dispatcher
 
 from config import TOKEN  # load dot_env
-from tire_bot.handlers import user
 from tire_bot.admin import admin
-from tire_bot.database.models import async_main
+from tire_bot.database.models import db_init
+from tire_bot.handlers import user
 
 
-async def main():
+async def async_main():
+    await db_init()
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
     dp.include_routers(user, admin)
-    dp.startup.register(on_startup)
     await dp.start_polling(bot)
 
 
-async def on_startup(dispatcher):
-    await async_main()
-
-
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.INFO)
     try:
-        asyncio.run(main())
+        asyncio.run(async_main())
     except KeyboardInterrupt:
-        print('Exit')
+        print("Exit")
+
+
+if __name__ == "__main__":
+    main()

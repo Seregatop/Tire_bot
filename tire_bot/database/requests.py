@@ -1,15 +1,20 @@
-from datetime import datetime, date
-
-from sqlalchemy import BigInteger, func
-from sqlalchemy import select, update, delete, desc
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from tire_bot.database.models import Base, MainDB, AdminDB, PayDB
+from datetime import date, datetime
+from decimal import Decimal
 
 from aiogram.fsm.state import State
-from tire_bot.database.models import async_session, DiameterDB, ServiceDB, PriceDB
+from sqlalchemy import BigInteger, delete, desc, func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from decimal import Decimal
+from tire_bot.database.models import (
+    AdminDB,
+    Base,
+    DiameterDB,
+    MainDB,
+    PayDB,
+    PriceDB,
+    ServiceDB,
+    async_session,
+)
 
 
 def connection(function):
@@ -37,25 +42,53 @@ async def check_available(session: AsyncSession, dbname: Base, req: str):
 
 
 @connection
-async def approximate_price(session: AsyncSession,
-                            service_name: str) -> int:
-    result = await session.scalar(select(PriceDB).where(PriceDB.service == service_name))
+async def approximate_price(session: AsyncSession, service_name: str) -> int:
+    result = await session.scalar(
+        select(PriceDB).where(PriceDB.service == service_name)
+    )
     return result.R17
 
 
 @connection
-async def to_main_bd(session: AsyncSession, user_name, tg_id, diameter, service, additional_service, payment_type,
-                     discount, price):
-    sale = MainDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), diameter=diameter, service=service,
-                  additional_service=additional_service, payment_type=payment_type, discount=discount, price=price)
+async def to_main_bd(
+    session: AsyncSession,
+    user_name,
+    tg_id,
+    diameter,
+    service,
+    additional_service,
+    payment_type,
+    discount,
+    price,
+):
+    sale = MainDB(
+        user_name=user_name,
+        tg_id=tg_id,
+        created_at=date.today(),
+        diameter=diameter,
+        service=service,
+        additional_service=additional_service,
+        payment_type=payment_type,
+        discount=discount,
+        price=price,
+    )
     session.add(sale)
     await session.commit()
 
 
 @connection
-async def to_pay_bd(session: AsyncSession, tg_id, user_name, category, payer, object_, price):
-    pay = PayDB(user_name=user_name, tg_id=tg_id, created_at=date.today(), category=category, object=object_,
-                payer=payer, price=price)
+async def to_pay_bd(
+    session: AsyncSession, tg_id, user_name, category, payer, object_, price
+):
+    pay = PayDB(
+        user_name=user_name,
+        tg_id=tg_id,
+        created_at=date.today(),
+        category=category,
+        object=object_,
+        payer=payer,
+        price=price,
+    )
     session.add(pay)
     await session.commit()
 
@@ -68,7 +101,9 @@ async def season_total(session: AsyncSession):
 
 @connection
 async def day_total(session: AsyncSession):
-    result = await session.scalar(select(func.sum(MainDB.price)).where(MainDB.created_at == func.current_date()))
+    result = await session.scalar(
+        select(func.sum(MainDB.price)).where(MainDB.created_at == func.current_date())
+    )
     return result
 
 
