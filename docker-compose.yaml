@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  tire_bot:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: tire_bot
+    restart: unless-stopped
