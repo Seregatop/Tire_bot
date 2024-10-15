@@ -4,10 +4,10 @@ from sqlalchemy import BigInteger, func
 from sqlalchemy import select, update, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Base, MainDB, AdminDB, PayDB
+from tire_bot.database.models import Base, MainDB, AdminDB, PayDB
 
 from aiogram.fsm.state import State
-from app.database.models import async_session, DiameterDB, ServiceDB, PriceDB
+from tire_bot.database.models import async_session, DiameterDB, ServiceDB, PriceDB
 
 from decimal import Decimal
 

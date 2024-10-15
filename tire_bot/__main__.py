@@ -4,9 +4,9 @@ import logging  # loguru почитать
 from aiogram import Bot, Dispatcher
 
 from config import TOKEN  # load dot_env
-from app.handlers import user
-from app.admin import admin
-from app.database.models import async_main
+from tire_bot.handlers import user
+from tire_bot.admin import admin
+from tire_bot.database.models import async_main
 
 
 async def main():

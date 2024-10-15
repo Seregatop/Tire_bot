@@ -2,16 +2,16 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command
 
-from app.builder import available_kb
-from app.database.requests import check_available, approximate_price, to_main_bd, to_pay_bd
-from app.database.models import PaymentDB, DiameterDB, DiscountDB, AddServiceDB, ServiceDB, CategoryDB, PayerDB
-from app.keyboards import keyboard_inline_new, keyboard_inline_post, keyboard_inline_new_pay
+from tire_bot.builder import available_kb
+from tire_bot.database.requests import check_available, approximate_price, to_main_bd, to_pay_bd
+from tire_bot.database.models import PaymentDB, DiameterDB, DiscountDB, AddServiceDB, ServiceDB, CategoryDB, PayerDB
+from tire_bot.keyboards import keyboard_inline_new, keyboard_inline_post, keyboard_inline_new_pay
 
-from app.states import Sale, Pay
+from tire_bot.states import Sale, Pay
 from aiogram.fsm.context import FSMContext
 from datetime import datetime
 
-from app.sending_to_sheets import send_gs_car, send_gs_pay
+from tire_bot.sending_to_sheets import send_gs_car, send_gs_pay
 
 user = Router()
 
@@ -161,7 +161,7 @@ async def send_chosen(call: CallbackQuery, state: FSMContext):
     await call.answer(text="Отправлено")
     await call.message.edit_reply_markup(reply_markup=keyboard_inline_new)
     print(call.message.chat.username, user_data["chosen_price"])
-    await to_main_bd(call.message.from_user.username, call.message.from_user.id, user_data["chosen_diameter"],
+    await to_main_bd(call.from_user.username, call.from_user.id, user_data["chosen_diameter"],
                      user_data["chosen_service"], user_data["chosen_additional_service"],
                      user_data["chosen_payment_type"], user_data["chosen_discount"], user_data["chosen_price"])
 

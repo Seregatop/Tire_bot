@@ -1,7 +1,7 @@
 from aiogram.types import KeyboardButton, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
-from app.database.requests import get_available
+from tire_bot.database.requests import get_available
 
 
 async def available_kb(db_name):

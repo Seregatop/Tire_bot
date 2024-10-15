@@ -5,16 +5,16 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Filter, Command
 from aiogram.fsm.context import FSMContext
 
-from app.builder import available_kb
-from app.database.models import PaymentDB
-from app.database.requests import season_total, day_total, admin_list, check_available, to_main_bd
-from app.keyboards import keyboard_inline_new_fast
+from tire_bot.builder import available_kb
+from tire_bot.database.models import PaymentDB
+from tire_bot.database.requests import season_total, day_total, admin_list, check_available, to_main_bd
+from tire_bot.keyboards import keyboard_inline_new_fast
 
-from app.sending_to_sheets import get_season, get_day, send_gs_car
+from tire_bot.sending_to_sheets import get_season, get_day, send_gs_car
 
-from app.states import FastSale
+from tire_bot.states import FastSale
 
-# from app.database.requests import
+# from tire_bot.database.requests import
 
 admin = Router()
 

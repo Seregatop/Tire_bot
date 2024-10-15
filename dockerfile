@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-alpine
 
 WORKDIR /app
 
@@ -13,4 +13,4 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-CMD ["python", "run.py"]
+CMD ["sh", "tire_bot"]
