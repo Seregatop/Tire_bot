@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir poetry==1.8.3
 COPY . .
 
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-dev --no-interaction --no-ansi
+RUN poetry install
+
+ENV PYTHONUNBUFFERED=1
 
 CMD ["sh", "-c", "poetry run tire-bot"]
