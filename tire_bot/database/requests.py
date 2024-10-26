@@ -26,11 +26,13 @@ def connection(function):
     return inner
 
 
+# Возвращает список доступных значений из заданной таблицы
 @connection
 async def get_available(session: AsyncSession, dbname: Type[Base]) -> ScalarResult[Any]:
     return await session.scalars(select(dbname))
 
 
+# Функция проверяет наличие значения в таблице
 @connection
 async def check_available(session: AsyncSession, dbname: Type[Base], req: str) -> bool:
     model = await session.scalar(select(dbname).where(dbname.name == req))
@@ -42,14 +44,16 @@ async def check_available(session: AsyncSession, dbname: Type[Base], req: str) -
         return False
 
 
+# Возвращает цену
 @connection
-async def approximate_price(session: AsyncSession, service_name: str) -> int:
+async def approximate_price(session: AsyncSession, service_name: str, diameter: str) -> int:
     result = await session.scalar(
         select(PriceDB).where(PriceDB.service == service_name)
     )
-    return result.R17
+    return getattr(result, diameter)
 
 
+# Запись продажи
 @connection
 async def to_main_bd(
     session: AsyncSession,
@@ -77,6 +81,7 @@ async def to_main_bd(
     await session.commit()
 
 
+# Запись расхода
 @connection
 async def to_pay_bd(
     session: AsyncSession, tg_id, user_name, category, payer, object_, price
@@ -94,12 +99,14 @@ async def to_pay_bd(
     await session.commit()
 
 
+# Возвращает оборот за все время
 @connection
 async def season_total(session: AsyncSession) -> int:
     result = await session.scalar(select(func.sum(MainDB.price)))
     return result
 
 
+# Возвращает оборот за сегодня
 @connection
 async def day_total(session: AsyncSession) -> int:
     result = await session.scalar(
@@ -108,6 +115,7 @@ async def day_total(session: AsyncSession) -> int:
     return result
 
 
+# Возвращает список телеграм ID администраторов
 @connection
 async def admin_list(session: AsyncSession):
     result = await session.scalars(select(AdminDB.tg_id))

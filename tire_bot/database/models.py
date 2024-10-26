@@ -51,6 +51,7 @@ class DiscountDB(Base):
     name: Mapped[str] = mapped_column(String(15))
 
 
+# Таблица со списком телеграм ID администраторов
 class AdminDB(Base):
     __tablename__ = "administrators"
 
@@ -58,6 +59,7 @@ class AdminDB(Base):
     tg_id = mapped_column(BigInteger)
 
 
+# Таблица с ценами
 class PriceDB(Base):
     __tablename__ = "prices"
 
@@ -77,6 +79,7 @@ class PriceDB(Base):
     R22: Mapped[str] = mapped_column(String(15))
 
 
+# Главная таблица со записями продаж
 class MainDB(Base):
     __tablename__ = "main"
 

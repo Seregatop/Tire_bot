@@ -138,7 +138,7 @@ async def discount_chosen(call: CallbackQuery, state: FSMContext):
     await state.update_data(chosen_discount=call.data)
     await state.set_state(Sale.wait_for_price)
     user_data = await state.get_data()
-    price = await approximate_price(user_data["chosen_service"])
+    price = await approximate_price(user_data["chosen_service"], user_data["chosen_diameter"])
     await call.message.edit_text(
         text=f"6. Ориентировочная цена: {price}руб.\nНапишите конечную цену:"
     )
