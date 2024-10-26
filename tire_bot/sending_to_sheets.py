@@ -18,13 +18,13 @@ async def send_gs_pay(*args):
     wks.append_table(values=args, dimension="ROWS", overwrite=False)
 
 
-async def get_day():
+async def get_day() -> str:
     wks = sh.worksheet_by_title("Svod")
     result = wks.get_value("L3")
     return result
 
 
-async def get_season():
+async def get_season() -> str:
     wks = sh.worksheet_by_title("Svod")
     result = wks.get_value("O7")
     return result

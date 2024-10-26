@@ -1,8 +1,9 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any, Type
 
 from aiogram.fsm.state import State
-from sqlalchemy import BigInteger, delete, desc, func, select, update
+from sqlalchemy import BigInteger, delete, desc, func, select, update, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tire_bot.database.models import (
@@ -26,12 +27,12 @@ def connection(function):
 
 
 @connection
-async def get_available(session: AsyncSession, dbname):
+async def get_available(session: AsyncSession, dbname: Type[Base]) -> ScalarResult[Any]:
     return await session.scalars(select(dbname))
 
 
 @connection
-async def check_available(session: AsyncSession, dbname: Base, req: str):
+async def check_available(session: AsyncSession, dbname: Type[Base], req: str) -> bool:
     model = await session.scalar(select(dbname).where(dbname.name == req))
     try:
         result = model.name
@@ -60,7 +61,7 @@ async def to_main_bd(
     payment_type,
     discount,
     price,
-):
+) -> None:
     sale = MainDB(
         user_name=user_name,
         tg_id=tg_id,
@@ -79,7 +80,7 @@ async def to_main_bd(
 @connection
 async def to_pay_bd(
     session: AsyncSession, tg_id, user_name, category, payer, object_, price
-):
+) -> None:
     pay = PayDB(
         user_name=user_name,
         tg_id=tg_id,
@@ -94,13 +95,13 @@ async def to_pay_bd(
 
 
 @connection
-async def season_total(session: AsyncSession):
+async def season_total(session: AsyncSession) -> int:
     result = await session.scalar(select(func.sum(MainDB.price)))
     return result
 
 
 @connection
-async def day_total(session: AsyncSession):
+async def day_total(session: AsyncSession) -> int:
     result = await session.scalar(
         select(func.sum(MainDB.price)).where(MainDB.created_at == func.current_date())
     )

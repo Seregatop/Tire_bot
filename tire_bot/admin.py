@@ -118,7 +118,7 @@ async def price_chosen(message: Message, state: FSMContext):
             int(countdown.days),
             int(countdown.days),
             int(message.date.month),
-            str(message.date.time()),
+            str(now.time()),
             str(message.chat.full_name),
             message.from_user.id,
             message.from_user.username,

@@ -1,10 +1,13 @@
-from aiogram.types import InlineKeyboardButton, KeyboardButton
+from aiogram.types import InlineKeyboardButton, KeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from typing import Type
+
+from tire_bot.database.models import Base
 from tire_bot.database.requests import get_available
 
 
-async def available_kb(db_name):
+async def available_kb(db_name: Type[Base]) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     for diameter in await get_available(db_name):
         keyboard.add(

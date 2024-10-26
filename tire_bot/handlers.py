@@ -181,7 +181,7 @@ async def send_chosen(call: CallbackQuery, state: FSMContext):
             int(countdown.days) - offset,
             int(countdown.days) - offset,
             int(call.message.date.month),
-            str(call.message.date.time()),
+            str(now.time()),
             str(call.message.chat.full_name),
             call.from_user.id,
             call.from_user.username,
