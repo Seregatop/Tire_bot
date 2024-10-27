@@ -15,24 +15,27 @@ from tire_bot.database.requests import (
     to_main_bd,
 )
 from tire_bot.keyboards import keyboard_inline_new_fast
-from tire_bot.sending_to_sheets import get_day, get_season, send_gs_car
+from tire_bot.sending_to_sheets import SheetHandler
 from tire_bot.states import FastSale
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class Admin(Filter):
-    def __init__(self, sess: AsyncSession):
-        self.sess = sess
-
-    async def __call__(self, message: Message):
-        return message.from_user.id in await admin_list(self.sess)
+# class AdminFilter(Filter):
+#     def __init__(self, sess: AsyncSession):
+#         self.sess = sess
+#
+#     async def __call__(self, message: Message):
+#         return message.from_user.id in await admin_list(self.sess)
 
 
 class AdminRouter(Router):
-    def __init__(self, sess: AsyncSession):
+    def __init__(self, sess: AsyncSession, sheet: SheetHandler):
         super().__init__()
         self.sess = sess
-        self.admin_filter = Admin(self.sess)
+        self.sheet = sheet
+
+    async def admin_filter(self, message: Message):
+        return message.from_user.id in await admin_list(self.sess)
 
     def init_handlers(self):
         @self.message(self.admin_filter, Command("info"))
@@ -46,7 +49,7 @@ class AdminRouter(Router):
                 )
             await state.clear()
             db_result = await season_total(self.sess)
-            google_result = await get_season()
+            google_result = await self.sheet.get_season()
             await message.answer(
                 f"Локальные данные\nОборот за сезон: р.{db_result}\n\n"
                 f"Данные из Google\nОборот за сезон: {google_result}"
@@ -63,7 +66,7 @@ class AdminRouter(Router):
                 )
             await state.clear()
             db_result = await day_total(self.sess)
-            google_result = await get_day()
+            google_result = await self.sheet.get_day()
             await message.answer(
                 f"Локальные данные\nОборот за день: р.{db_result}\n\n"
                 f"Данные из Google\nОборот за день: {google_result}"
@@ -116,7 +119,7 @@ class AdminRouter(Router):
             now = datetime.now()
             new_years = datetime(day=30, month=12, year=1899)
             countdown = now - new_years
-            await send_gs_car(
+            await self.sheet.send_gs_car(
                 [
                     int(countdown.days),
                     int(countdown.days),

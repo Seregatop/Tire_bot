@@ -26,15 +26,16 @@ from tire_bot.keyboards import (
     keyboard_inline_new_pay,
     keyboard_inline_post,
 )
-from tire_bot.sending_to_sheets import send_gs_car, send_gs_pay
+from tire_bot.sending_to_sheets import SheetHandler
 from tire_bot.states import Pay, Sale
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class UserRouter(Router):
-    def __init__(self, sess: AsyncSession):
+    def __init__(self, sess: AsyncSession, sheet: SheetHandler):
         super().__init__()
         self.sess = sess
+        self.sheet = sheet
 
     def init_handlers(self):
         @self.message(CommandStart())
@@ -173,7 +174,7 @@ class UserRouter(Router):
             new_years = datetime(day=30, month=12, year=1899)
             countdown = now - new_years
             offset = int(call.data.split("_")[1])
-            await send_gs_car(
+            await self.sheet.send_gs_car(
                 [
                     int(countdown.days) - offset,
                     int(countdown.days) - offset,
@@ -285,7 +286,7 @@ class UserRouter(Router):
             new_years = datetime(day=30, month=12, year=1899)
             countdown = now - new_years
             offset = int(call.data.split("_")[1])
-            await send_gs_pay(
+            await self.sheet.send_gs_pay(
                 [
                     int(countdown.days) - offset,
                     user_data["chosen_category"],
