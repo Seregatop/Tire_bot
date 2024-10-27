@@ -1,41 +1,24 @@
 from datetime import datetime
+from typing import Type
 
 from aiogram import F, Router
 from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
-
-from tire_bot.builder import available_kb
-from tire_bot.database.models import PaymentDB
-from tire_bot.database.requests import (
-    admin_list,
-    check_available,
-    day_total,
-    season_total,
-    to_main_bd,
-)
-from tire_bot.keyboards import keyboard_inline_new_fast
-from tire_bot.sending_to_sheets import SheetHandler
-from tire_bot.states import FastSale
+from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tire_bot.database.models import PaymentDB, Base
+from tire_bot.database.requests import DatabaseHandler
+from tire_bot.keyboards import keyboard_inline_new_fast
+from tire_bot.my_router import MyRouter
+from tire_bot.sending_to_sheets import SheetHandler
+from tire_bot.states import FastSale
 
-# class AdminFilter(Filter):
-#     def __init__(self, sess: AsyncSession):
-#         self.sess = sess
-#
-#     async def __call__(self, message: Message):
-#         return message.from_user.id in await admin_list(self.sess)
 
-
-class AdminRouter(Router):
-    def __init__(self, sess: AsyncSession, sheet: SheetHandler):
-        super().__init__()
-        self.sess = sess
-        self.sheet = sheet
-
+class AdminRouter(MyRouter):
     async def admin_filter(self, message: Message):
-        return message.from_user.id in await admin_list(self.sess)
+        return message.from_user.id in await self.db.admin_list()
 
     def init_handlers(self):
         @self.message(self.admin_filter, Command("info"))
@@ -48,7 +31,7 @@ class AdminRouter(Router):
                     reply_markup=None,
                 )
             await state.clear()
-            db_result = await season_total(self.sess)
+            db_result = await self.db.season_total()
             google_result = await self.sheet.get_season()
             await message.answer(
                 f"Локальные данные\nОборот за сезон: р.{db_result}\n\n"
@@ -65,7 +48,7 @@ class AdminRouter(Router):
                     reply_markup=None,
                 )
             await state.clear()
-            db_result = await day_total(self.sess)
+            db_result = await self.db.day_total()
             google_result = await self.sheet.get_day()
             await message.answer(
                 f"Локальные данные\nОборот за день: р.{db_result}\n\n"
@@ -86,18 +69,18 @@ class AdminRouter(Router):
             if isinstance(message, Message):
                 await message.delete()
                 await message.answer(
-                    "1. Выберите тип оплаты", reply_markup=await available_kb(PaymentDB)
+                    "1. Выберите тип оплаты", reply_markup=await self.available_kb(PaymentDB)
                 )
             else:
                 await message.message.delete_reply_markup()
                 await message.message.answer(
-                    "1. Выберите тип оплаты", reply_markup=await available_kb(PaymentDB)
+                    "1. Выберите тип оплаты", reply_markup=await self.available_kb(PaymentDB)
                 )
             await state.set_state(FastSale.wait_for_payment_type)
 
         @self.callback_query(FastSale.wait_for_payment_type)
         async def payment_type_chosen(call: CallbackQuery, state: FSMContext):
-            if not await check_available(self.sess, PaymentDB, call.data):
+            if not await self.db.check_available(PaymentDB, call.data):
                 await call.answer(text="Выберите тип оплаты из списка")
                 return
             await state.update_data(chosen_payment_type=call.data)
@@ -138,8 +121,7 @@ class AdminRouter(Router):
                 ]
             )
             print(message.chat.username, user_data["chosen_price"])
-            await to_main_bd(
-                self.sess,
+            await self.db.to_main_bd(
                 user_name=message.from_user.username,
                 tg_id=message.from_user.id,
                 diameter="Не задан",

@@ -2,10 +2,9 @@ import os
 from datetime import date, datetime
 
 from sqlalchemy import BigInteger, ForeignKey, String, func, select, text
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, \
-    create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import (AsyncAttrs, AsyncSession,
+                                    async_sessionmaker, create_async_engine)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -116,12 +115,3 @@ class PayDB(Base):
     object: Mapped[str] = mapped_column(String(15))
     payer: Mapped[str] = mapped_column(String(15))
     price: Mapped[str] = mapped_column(String(15))
-
-
-async def db_init(db_url: str) -> AsyncSession:
-    engine = create_async_engine(url=db_url, echo=True)
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    return async_sessionmaker(engine)()
