@@ -1,10 +1,9 @@
 import pygsheets
-
-from config import SPREADSHEET_ID
+import os
 
 gs = pygsheets.authorize(service_file=r"client_secret.json")
 
-sh = gs.open_by_key(SPREADSHEET_ID)
+sh = gs.open_by_key(os.getenv('SPREADSHEET_ID'))
 
 
 # Добавляет новую строку с продажей в конец гугл таблиц со значениями из args

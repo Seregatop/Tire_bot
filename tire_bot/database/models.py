@@ -1,13 +1,11 @@
-import asyncio
+import os
 from datetime import date, datetime
 
 from sqlalchemy import BigInteger, ForeignKey, String, func, select, text
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from config import DB_URL
-
-engine = create_async_engine(url=DB_URL, echo=True)
+engine = create_async_engine(url=os.getenv('DB_URL'), echo=True)
 
 async_session = async_sessionmaker(engine)
 
