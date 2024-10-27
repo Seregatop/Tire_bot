@@ -14,26 +14,15 @@ from tire_bot.database.models import (
     PayDB,
     PriceDB,
     ServiceDB,
-    async_session,
 )
 
 
-def connection(function):
-    async def inner(*args, **kwargs):
-        async with async_session() as session:
-            return await function(session, *args, **kwargs)
-
-    return inner
-
-
-# Возвращает список доступных значений из заданной таблицы
-@connection
 async def get_available(session: AsyncSession, dbname: Type[Base]) -> ScalarResult[Any]:
+    """Возвращает список доступных значений из заданной таблицы."""
     return await session.scalars(select(dbname))
 
 
 # Функция проверяет наличие значения в таблице
-@connection
 async def check_available(session: AsyncSession, dbname: Type[Base], req: str) -> bool:
     model = await session.scalar(select(dbname).where(dbname.name == req))
     try:
@@ -45,7 +34,6 @@ async def check_available(session: AsyncSession, dbname: Type[Base], req: str) -
 
 
 # Возвращает цену
-@connection
 async def approximate_price(session: AsyncSession, service_name: str, diameter: str) -> int:
     result = await session.scalar(
         select(PriceDB).where(PriceDB.service == service_name)
@@ -54,7 +42,6 @@ async def approximate_price(session: AsyncSession, service_name: str, diameter: 
 
 
 # Запись продажи
-@connection
 async def to_main_bd(
     session: AsyncSession,
     user_name,
@@ -82,7 +69,6 @@ async def to_main_bd(
 
 
 # Запись расхода
-@connection
 async def to_pay_bd(
     session: AsyncSession, tg_id, user_name, category, payer, object_, price
 ) -> None:
@@ -100,14 +86,12 @@ async def to_pay_bd(
 
 
 # Возвращает оборот за все время
-@connection
 async def season_total(session: AsyncSession) -> int:
     result = await session.scalar(select(func.sum(MainDB.price)))
     return result
 
 
 # Возвращает оборот за сегодня
-@connection
 async def day_total(session: AsyncSession) -> int:
     result = await session.scalar(
         select(func.sum(MainDB.price)).where(MainDB.created_at == func.current_date())
@@ -116,7 +100,6 @@ async def day_total(session: AsyncSession) -> int:
 
 
 # Возвращает список телеграм ID администраторов
-@connection
 async def admin_list(session: AsyncSession):
     result = await session.scalars(select(AdminDB.tg_id))
     return result.all()

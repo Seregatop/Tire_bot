@@ -3,16 +3,27 @@ import logging  # loguru почитать
 
 from aiogram import Bot, Dispatcher
 
-from config import TOKEN  # load dot_env
-from tire_bot.admin import admin
+from tire_bot.admin import AdminRouter
 from tire_bot.database.models import db_init
-from tire_bot.handlers import user
+from tire_bot.handlers import UserRouter
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 async def async_main():
-    await db_init()
+    sess = await db_init(db_url='???')
+
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
+
+    user = UserRouter(sess)
+    user.init_handlers()
+
+    admin = AdminRouter(sess)
+    admin.init_handlers()
+
     dp.include_routers(user, admin)
     await dp.start_polling(bot)
 
