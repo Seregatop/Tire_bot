@@ -1,5 +1,7 @@
 import asyncio
 import logging  # loguru почитать
+import os
+from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher
 
