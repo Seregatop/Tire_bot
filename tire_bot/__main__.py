@@ -1,5 +1,6 @@
 import asyncio
 import os
+import typer
 
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
@@ -11,20 +12,18 @@ from tire_bot.sending_to_sheets import SheetHandler
 
 load_dotenv()
 
-DB_URL = os.getenv("DB_URL")
-TOKEN = os.getenv("TOKEN")
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 
-
-async def async_main():
-    db = DatabaseHandler(DB_URL)
-    await db.create_all()
+def typer_main(db_url: str = typer.Option(..., envvar="DB_URL"),
+               token: str = typer.Option(..., envvar="TOKEN"),
+               spreadsheet_id: str = typer.Option(..., envvar="SPREADSHEET_ID")):
+    db = DatabaseHandler(db_url)
+    asyncio.run(db.create_all())
 
     sheet = SheetHandler(
-        service_file="client_secret.json", spreadsheet_id=SPREADSHEET_ID
+        service_file="client_secret.json", spreadsheet_id=spreadsheet_id
     )
 
-    bot = Bot(token=TOKEN)
+    bot = Bot(token=token)
     dp = Dispatcher()
 
     user = UserRouter(db, sheet)
@@ -34,14 +33,15 @@ async def async_main():
     admin.init_handlers()
 
     dp.include_routers(user, admin)
-    await dp.start_polling(bot)
+    asyncio.run(dp.start_polling(bot))
 
 
 def main():
-    try:
-        asyncio.run(async_main())
-    except KeyboardInterrupt:
-        print("Exit")
+    typer.run(typer_main)
+    # try:
+    #     asyncio.run(async_main())
+    # except KeyboardInterrupt:
+    #     print("Exit")
 
 
 if __name__ == "__main__":

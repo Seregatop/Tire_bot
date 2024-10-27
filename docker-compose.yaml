@@ -7,3 +7,7 @@ services:
       dockerfile: dockerfile
     container_name: tire_bot
     restart: unless-stopped
+    environment:
+      - TOKEN
+      - DB_URL
+      - SPREADSHEET_ID
